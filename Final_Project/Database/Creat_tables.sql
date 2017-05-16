@@ -279,9 +279,9 @@ create table PRESETATION
 (
    PRESENTATION_ID      integer                        not null IDENTITY,
    CONFERENCE_ID        integer                        null,
-   TITLE                varchar(50)                    not null,
+   TITLE                varchar(150)                    not null,
    DESCRIPTION          varchar(255)                   not null,
-   DIFFICULTY_LEVEL     integer                        not null,
+   DIFFICULTY_LEVEL     varchar(12)                     not null,
    DURATION             varchar(10)                    not null,
    AVERAGE_GRADE        integer                        not null,
    constraint PK_PRESETATION primary key (PRESENTATION_ID)
