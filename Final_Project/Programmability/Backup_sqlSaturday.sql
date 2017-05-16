@@ -7,6 +7,8 @@
 USE S17guest05
 GO
 BACKUP DATABASE S17guest05
- TO DISK = 'C:\SQLServerBackups\sqlSaturday.bak'  
-   WITH FORMAT;  
-GO
+ TO DISK = 'C:\Users\dz\Documents\SQL Server Management Studio\Backup_sqlSaturday.bak'  
+   WITH FORMAT,
+      MEDIANAME = 'SQLSaturday',  
+      NAME = 'Full Backup of sqlSaturday';  
+GO  
