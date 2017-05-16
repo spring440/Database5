@@ -352,31 +352,87 @@ excel functions:
 =CONCATENATE("('",H1,"','",A1,"','",B1,"','",C1,"','",D1,"')")
 */
 
-
 -- insert person table
-SELECT * FROM PERSON
-alter TABLE PERSON
-ALTER COLUMN ROLE_NAME varchar(10)
 INSERT INTO PERSON(FIRST_NAME,LAST_NAME)
 (
 SELECT first_name,last_name FROM attendees_registration_temp
 GROUP BY first_name,last_name
 )
 
-alter table PERSON
-alter column FIRST_NAME varchar(30)
-alter table PERSON
-alter column LAST_NAME varchar(30)
-
 
 INSERT INTO PERSON(FIRST_NAME,LAST_NAME)
-SELECT
+SELECT DISTINCT
 PARSENAME(REPLACE(presenter_name,' ','.'),2) as first_name, 
 PARSENAME(REPLACE(presenter_name,' ','.'),1) as last_name 
 from Presentation_template
 
--- drop the template tables
-DROP TABLE attendees_registration_temp
-DROP TABLE Presentation_template
-DROP TABLE conference_template
-DROP TABLE sponsors_template
+
+
+-- insert ATTENDEE
+INSERT INTO ATTENDEE(ROLE_ID)
+SELECT PERSON.PERSON_ID FROM PERSON
+JOIN attendees_registration_temp ON
+(
+	PERSON.FIRST_NAME = attendees_registration_temp.first_name
+	AND PERSON.LAST_NAME = attendees_registration_temp.last_name
+)
+/*GROUP BY PERSON.PERSON_ID*/
+
+-- insert attendee_address
+
+insert into attendee_address (attendee_id,street,city,zipcode,states)
+select c.attendee_id,b.street,b.city,b.zipcode,b.states from person as a join attendees_registration_temp as b on 
+ (a.FIRST_NAME = b.first_name
+	AND a.LAST_NAME = b.last_name)
+join attendee as c on a.PERSON_ID = c.ROLE_ID
+
+
+-- insert presenter
+INSERT INTO presenter(ROLE_ID)
+SELECT distinct a.PERSON_ID FROM PERSON as a 
+JOIN Presentation_template as b ON
+(
+	concat(a.FIRST_NAME,' ',a.last_name) = b.presenter_name
+)
+
+
+-- insert conference
+insert into conference(conference_id,conference_name,conference_date)
+select substring(conference_description,charindex(' #',conference_description)+2,
+charindex(' -',conference_description)-charindex(' #',conference_description)-2),
+conference_description,conference_date from conference_template
+
+
+
+select * from conference_template 
+
+insert into venues(city_name,region)
+SELECT  substring(conference_description,charindex('- ',conference_description)+2,
+charindex(' 201',conference_description)-charindex('- ',conference_description)-2),region FROm conference_template
+
+-- insert conference venues
+insert into conference_venues(venues_id,conference_id)
+select a.venues_id,c.conference_id from venues as a join conference_template as b on (a.region = b.region and substring(conference_description,charindex('- ',conference_description)+2,
+charindex(' 201',conference_description)-charindex('- ',conference_description)-2) = a.city_name)
+join conference as c on b.conference_description = c.conference_name
+
+
+
+-- insert presentation
+insert into presentation(conference_id,title,difficulty_level,duration)
+select c.conference_id,a.title,a.difficulty_level,'60 min' from presentation_template as a join venues as b on a.city = b.city_name
+join conference_venues as c on b.venues_id = c.venues_id  
+
+-- insert presentation_presenter
+insert into presentation_presenter
+select distinct a.presenter_id,d.presentation_id from presenter as a join person as b on a.role_id = b.person_id
+join presentation_template as c on concat(b.FIRST_NAME,' ',b.last_name)=c.presenter_name 
+join presentation as d on (c.title=d.title and c.difficulty_level = d.difficulty_level) 
+
+
+
+
+--DROP TABLE attendees_registration_temp
+--DROP TABLE Presentation_template
+--DROP TABLE conference_template
+--DROP TABLE sponsors_template
