@@ -7,10 +7,7 @@
 -- add presetations
 -- Note: add the extra ' for wherever using it, otherwise the sql not recongnize it as the input data.
 
---DROP TABLE attendees_registration_temp
---DROP TABLE Presentation_template
---DROP TABLE conference_template
---DROP TABLE sponsors_template
+
 
 CREATE TABLE attendees_registration_temp(
 	attendees_registration_id int PRIMARY KEY IDENTITY NOT NULL,
@@ -354,3 +351,32 @@ excel functions:
 =CONCATENATE("('",L1,"','",A1,"','",B1,"','",C1,"','",D1,"','",E1,"','",F1, "','",G1, "','",I1,"')")
 =CONCATENATE("('",H1,"','",A1,"','",B1,"','",C1,"','",D1,"')")
 */
+
+
+-- insert person table
+SELECT * FROM PERSON
+alter TABLE PERSON
+ALTER COLUMN ROLE_NAME varchar(10)
+INSERT INTO PERSON(FIRST_NAME,LAST_NAME)
+(
+SELECT first_name,last_name FROM attendees_registration_temp
+GROUP BY first_name,last_name
+)
+
+alter table PERSON
+alter column FIRST_NAME varchar(30)
+alter table PERSON
+alter column LAST_NAME varchar(30)
+
+
+INSERT INTO PERSON(FIRST_NAME,LAST_NAME)
+SELECT
+PARSENAME(REPLACE(presenter_name,' ','.'),2) as first_name, 
+PARSENAME(REPLACE(presenter_name,' ','.'),1) as last_name 
+from Presentation_template
+
+-- drop the template tables
+DROP TABLE attendees_registration_temp
+DROP TABLE Presentation_template
+DROP TABLE conference_template
+DROP TABLE sponsors_template
